@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs'
-import {dirName, fileName} from '../functionality/index.js'
+import {dirName, fileName, exist} from '../functionality/index.js'
 
 const copy = async () => {
   const __filename = fileName(import.meta.url);
@@ -8,7 +8,9 @@ const copy = async () => {
   const filesCopyPath = path.join(__dirname, 'files_copy')
   const filesPath = path.join(__dirname, 'files')
  try{
-    if (fs.existsSync(filesCopyPath) || !fs.existsSync(filesPath)) throw new Exception();
+    // if (fs.existsSync(filesCopyPath) || !fs.existsSync(filesPath)) throw new Exception();
+    if (!await exist(filesPath) || await exist(filesCopyPath)) throw new Exception();
+
     await fs.promises.mkdir(filesCopyPath)
     const files = await fs.promises.readdir(filesPath)
     for (let file of files) {
