@@ -1,18 +1,20 @@
 import path from 'path';
 import fs from 'fs';
-import { dirName, fileName, exist } from '../functionality/index.js';
-
+import { exist } from '../functionality/index.js';
+import { fileURLToPath } from 'url';
 // implement function that renames file wrongFilename.txt to properFilename with extension .md
 // (if there's no file wrongFilename.txt or properFilename.md already exists Error with message FS operation failed must be thrown)
 
 const rename = async () => {
-  const __filename = fileName(import.meta.url);
-  const __dirname = dirName(__filename);
-  const filePath = path.join(__dirname, 'files', 'wrongFilename.txt');
-  const renamedPath = path.join(__dirname, 'files', 'properFilename.md');
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const from = path.join(dirname, 'files', 'wrongFilename.txt');
+  const to = path.join(dirname, 'files', 'properFilename.md');
+  const isFileExist = await exist(from);
+  const isFileRenamed = await exist(to);
   try {
-    if (!await exist(filePath) || await exist(renamedPath)) throw new Exception();
-    await fs.promises.rename(filePath, renamedPath)
+    if (!isFileExist || isFileRenamed) throw new Exception();
+    fs.promises.rename(from, to);
   } catch {
     throw new Error('FS operation failed');
   }

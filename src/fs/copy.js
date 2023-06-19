@@ -1,26 +1,34 @@
 import path from 'path';
-import fs from 'fs'
-import {dirName, fileName, exist} from '../functionality/index.js'
+import fs from 'fs';
+import { exist } from '../functionality/index.js';
+import { fileURLToPath } from 'url';
 
 const copy = async () => {
-  const __filename = fileName(import.meta.url);
-  const __dirname = dirName(__filename)
-  const filesCopyPath = path.join(__dirname, 'files_copy')
-  const filesPath = path.join(__dirname, 'files')
- try{
-    // if (fs.existsSync(filesCopyPath) || !fs.existsSync(filesPath)) throw new Exception();
-    if (!await exist(filesPath) || await exist(filesCopyPath)) throw new Exception();
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const from = path.join(dirname, 'files');
+  const destination = path.join(dirname, 'files_copy');
+  const isDirFromExists = await exist(path.join(dirname, 'files'));
+  const isDirDestinationExists = await exist(path.join(dirname, 'files_copy'));
 
-    await fs.promises.mkdir(filesCopyPath)
-    const files = await fs.promises.readdir(filesPath)
-    for (let file of files) {
-        const txt = await (await fs.promises.readFile(path.join(filesPath, file))).toString()
-        await fs.promises.writeFile(path.join(filesCopyPath, file), txt)
+  try {
+    if (!isDirFromExists || isDirDestinationExists) {
+      throw new Exception();
     }
- }
- catch{
-    throw new Error('FS operation failed')
- }
+
+    const files = await fs.promises.readdir(from);
+    for (let file of files) {
+      if (!!path.extname(file)) {
+        if (!(await exist(path.join(dirname, 'files_copy')))) {
+          await fs.promises.mkdir(destination);
+        }
+        const content = await (await fs.promises.readFile(path.join(from, file))).toString();
+        await fs.promises.writeFile(path.join(destination, file), content);
+      }
+    }
+  } catch {
+    throw new Error('FS operation failed');
+  }
 };
 
 await copy();
